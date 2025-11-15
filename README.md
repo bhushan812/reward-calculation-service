@@ -157,7 +157,6 @@ Select Run As → Spring Boot App
 
 ## 📸 Postman – Get All Customers
 ![Get All Customers](./docs/screenshots/postman/get_all_customer_rewards_api_response.png)
-
 ## 📸 Postman – Get Customer By ID
 ![Get Customer By ID](docs/screenshots/postman/getCustomerByIdAPIResponseScreenshot.png)
 
