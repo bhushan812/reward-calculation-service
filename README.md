@@ -1,3 +1,4 @@
+
 # Customer Rewards System
 
 ## ⭐ Project Description
@@ -122,32 +123,32 @@ Clone the repository:
 git clone https://github.com/bhushan812/reward-calculation-service.git
 
 
-Import the project into STS (Spring Tool Suite):
+* Import the project into STS (Spring Tool Suite):
 
-Open STS
+* Open STS
 
-Go to File → Import → Existing Maven Projects
+* Go to File → Import → Existing Maven Projects
 
-Select your cloned project folder
+* Select your cloned project folder
 
-Click Finish
+* Click Finish
 
-Build the project using Maven:
+* Build the project using Maven:
 
-mvn clean install
+* mvn clean install
 
 
-Run the Spring Boot application:
+##  Run the Spring Boot application:
 
-Right-click the main class (e.g., CustomerRewardsApplication.java)
+* Right-click the main class (e.g., CustomerRewardsApplication.java)
 
-Select Run As → Spring Boot App
+* Select Run As → Spring Boot App
 
 4. Access H2 console at: `http://localhost:8080/h2-console`
 
    * JDBC URL: `jdbc:h2:mem:rewardsdb`
    * Username: `sa`
-   * Password: *(leave empty)*
+   * Password: 
 
 5. Test APIs via Postman using the endpoints described above.
 
@@ -156,10 +157,12 @@ Select Run As → Spring Boot App
 ## 📸 Screenshots
 
 ## 📸 Postman – Get All Customers
-![Get All Customers](./docs/screenshots/postman/get_all_customer_rewards_api_response.png)
+![Get All Customers](docs/screenshots/postman/getAllCustomerRewardsApiResponse.PNG)
+
 ## 📸 Postman – Get Customer By ID
-![Get Customer By ID](docs/screenshots/postman/getCustomerByIdAPIResponseScreenshot.png)
+![Get Customer By ID](docs/screenshots/postman/getCustomerByIdAPIResponseScreenshot.PNG)
 
 ## 📸 H2 Console
-![H2 Console](.docs/screenshots/console/consoleOutputScreenshots.png)
+![H2 Console](docs/screenshots/console/consoleOutputScreenshots.PNG)
 ---
+
