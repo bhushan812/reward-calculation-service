@@ -14,6 +14,9 @@ import org.mockito.MockitoAnnotations;
 import static org.mockito.Mockito.*;
 
 import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 public class TransactionServiceTest {
@@ -51,6 +54,19 @@ public class TransactionServiceTest {
 	}
 
 	@Test
+	public void testGetAllTransactions() {
+		TransactionEntity tx1 = new TransactionEntity();
+		TransactionEntity tx2 = new TransactionEntity();
+		when(transactionRepository.findAll()).thenReturn(Arrays.asList(tx1, tx2));
+
+		List<TransactionEntity> result = transactionService.getAllTransactions();
+
+		org.junit.jupiter.api.Assertions.assertNotNull(result);
+		org.junit.jupiter.api.Assertions.assertEquals(2, result.size());
+		verify(transactionRepository, times(1)).findAll();
+	}
+
+	@Test
 	public void testUpdateTransaction() {
 		Long transactionId = 101L;
 		Long customerId = 1L;
@@ -78,7 +94,7 @@ public class TransactionServiceTest {
 	}
 
 	@Test
-	public void testUpdateTransaction_NotFound() {
+	public void testUpdateTransactionNotFound() {
 		Long transactionId = 999L;
 		TransactionRequestDto transactionRequestDto = new TransactionRequestDto();
 		transactionRequestDto.setTransactionId(transactionId);
@@ -110,7 +126,7 @@ public class TransactionServiceTest {
 	}
 
 	@Test
-	public void testDeleteTransaction_NotFound() {
+	public void testDeleteTransactionNotFound() {
 		Long transactionId = 999L;
 
 		doThrow(new RuntimeException("Transaction not found")).when(transactionRepository).deleteById(transactionId);
@@ -121,4 +137,16 @@ public class TransactionServiceTest {
 			verify(transactionRepository, times(1)).deleteById(transactionId);
 		}
 	}
+	  
+
+	    @Test
+	    public void testGetAllTransactionsEmpty() {
+	        when(transactionRepository.findAll()).thenReturn(Collections.emptyList());
+
+	        List<TransactionEntity> result = transactionService.getAllTransactions();
+
+	        org.junit.jupiter.api.Assertions.assertNotNull(result);
+	        org.junit.jupiter.api.Assertions.assertTrue(result.isEmpty());
+	        verify(transactionRepository, times(1)).findAll();
+	    }
 }

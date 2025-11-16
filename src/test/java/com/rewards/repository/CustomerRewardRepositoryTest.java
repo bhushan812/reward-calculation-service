@@ -1,15 +1,23 @@
 package com.rewards.repository;
 
 import com.rewards.entity.CustomerRewardEntity;
+import com.rewards.repository.CustomerRewardRepository;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.Sql.ExecutionPhase;
+
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest
 @Transactional
@@ -49,5 +57,42 @@ public class CustomerRewardRepositoryTest {
 		customerRewardRepository.delete(savedCustomer);
 		assertFalse(customerRewardRepository.findById(savedCustomer.getId()).isPresent());
 	}
-}
 
+	@Test
+	public void testFindByIdNotExistingShouldReturnEmpty() {
+		assertTrue(customerRewardRepository.findById(999L).isEmpty());
+	}
+
+	@Test
+	public void testDeleteCustomerNotExistingShouldBeNoOp() {
+		long before = customerRewardRepository.count();
+
+		CustomerRewardEntity dummy = new CustomerRewardEntity();
+		dummy.setId(999L);
+
+		customerRewardRepository.delete(dummy);
+
+		long after = customerRewardRepository.count();
+		assertEquals(before, after, "Deleting a non-existing (detached) entity should be a no-op");
+	}
+
+	@Test
+	public void testSaveCustomerDuplicateIdShouldUpdateExisting() {
+		CustomerRewardEntity c1 = new CustomerRewardEntity();
+		c1.setName("User 1");
+		customerRewardRepository.saveAndFlush(c1);
+
+		// prepare a new object but reuse the same id -> JPA will update
+		CustomerRewardEntity c2 = new CustomerRewardEntity();
+		c2.setId(c1.getId());
+		c2.setName("User 2");
+
+		long beforeCount = customerRewardRepository.count();
+		CustomerRewardEntity result = customerRewardRepository.saveAndFlush(c2);
+
+		assertEquals(c1.getId(), result.getId());
+		assertEquals("User 2", customerRewardRepository.findById(c1.getId()).get().getName());
+		assertEquals(beforeCount, customerRewardRepository.count(), "save with existing id should update, not insert");
+	}
+
+}

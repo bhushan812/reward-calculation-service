@@ -5,6 +5,7 @@ import com.rewards.constants.Messages;
 import com.rewards.dto.CustomerRewardRequestDto;
 import com.rewards.dto.CustomerRewardResponseDto;
 import com.rewards.dto.TransactionResponseDto;
+import com.rewards.exception.ResourceNotFoundException;
 import com.rewards.service.CustomerRewardService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,11 +15,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.http.HttpStatus;
+
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -56,6 +54,17 @@ public class CustomerRewardControllerTest {
 		mockMvc.perform(MockMvcRequestBuilders.post(ApiUrls.BASE + ApiUrls.CUSTOMERS)
 				.contentType(MediaType.APPLICATION_JSON_VALUE).content("{ \"name\": \"Bhushan Patel\" }"))
 				.andExpect(status().isCreated()).andExpect(content().string(Messages.CUSTOMER_ADD_SUCCESS));
+	}
+
+	@Test
+	public void testAddCustomerBadRequest() throws Exception {
+
+		doThrow(new RuntimeException("Invalid data")).when(customerRewardService)
+				.addCustomer(any(CustomerRewardRequestDto.class));
+
+		mockMvc.perform(MockMvcRequestBuilders.post(ApiUrls.BASE + ApiUrls.CUSTOMERS)
+				.contentType(MediaType.APPLICATION_JSON_VALUE).content("{ \"name\": \"\" }")) // invalid input
+				.andExpect(status().isBadRequest()).andExpect(content().string(Messages.ERROR_ADD + "Invalid data"));
 	}
 
 	@Test
@@ -103,7 +112,7 @@ public class CustomerRewardControllerTest {
 	}
 
 	@Test
-	public void testGetCustomerRewards_CustomerNotFound() throws Exception {
+	public void testGetCustomerRewardsCustomerNotFound() throws Exception {
 
 		when(customerRewardService.getRewardsByCustomer(999L)).thenReturn(null);
 
@@ -113,7 +122,7 @@ public class CustomerRewardControllerTest {
 	}
 
 	@Test
-	public void testGetCustomerRewards_NoTransactions() throws Exception {
+	public void testGetCustomerRewardsNoTransactions() throws Exception {
 
 		CustomerRewardRequestDto dto = new CustomerRewardRequestDto();
 		dto.setName("Priya Sharma");
@@ -139,7 +148,7 @@ public class CustomerRewardControllerTest {
 	}
 
 	@Test
-	public void testGetCustomerRewards_InvalidTransactionAmount() throws Exception {
+	public void testGetCustomerRewardsInvalidTransactionAmount() throws Exception {
 
 		CustomerRewardRequestDto dto = new CustomerRewardRequestDto();
 		dto.setName("Suresh Yadav");
@@ -183,12 +192,31 @@ public class CustomerRewardControllerTest {
 	}
 
 	@Test
-	public void testDeleteCustomer() throws Exception {
-	    doNothing().when(customerRewardService).deleteCustomer(1L);
+	public void testUpdateCustomerNotFound() throws Exception {
 
-	    mockMvc.perform(MockMvcRequestBuilders.delete(ApiUrls.BASE + ApiUrls.CUSTOMERS + "/1"))
-	            .andExpect(status().isOk()) 
-	            .andExpect(content().string(Messages.CUSTOMER_DELETE_SUCCESS)); 
+		doThrow(new ResourceNotFoundException("Customer not found")).when(customerRewardService)
+				.updateCustomer(eq(999L), any(CustomerRewardRequestDto.class));
+
+		mockMvc.perform(MockMvcRequestBuilders.put(ApiUrls.BASE + ApiUrls.CUSTOMERS + "/999")
+				.contentType(MediaType.APPLICATION_JSON_VALUE).content("{ \"name\": \"Unknown User\" }"))
+				.andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isBadRequest());
+	}
+
+	@Test
+	public void testDeleteCustomer() throws Exception {
+		doNothing().when(customerRewardService).deleteCustomer(1L);
+
+		mockMvc.perform(MockMvcRequestBuilders.delete(ApiUrls.BASE + ApiUrls.CUSTOMERS + "/1"))
+				.andExpect(status().isOk()).andExpect(content().string(Messages.CUSTOMER_DELETE_SUCCESS));
+	}
+
+	@Test
+	public void testDeleteCustomer_NotFound() throws Exception {
+
+		doThrow(new RuntimeException("Customer not found")).when(customerRewardService).deleteCustomer(999L);
+
+		mockMvc.perform(MockMvcRequestBuilders.delete(ApiUrls.BASE + ApiUrls.CUSTOMERS + "/999"))
+				.andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isBadRequest());
 	}
 
 }
