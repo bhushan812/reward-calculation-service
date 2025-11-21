@@ -88,23 +88,6 @@ INSERT INTO TRANSACTIONS (ID, CUSTOMER_ID, AMOUNT, DATE) VALUES (101, 1, 120.00,
 
 ---
 
-## ⚡ Reward Calculation Logic
-
-`java
-public static int calculatePoints(double amount) {
-    int points = 0;
-    if (amount > 100) {
-        points += (int) ((amount - 100) * 2);
-        points += 50;
-    } else if (amount > 50) {
-        points += (int) (amount - 50);
-    }
-    return points;
-}
-
-
----
-
 ## 🧪 Testing
 
 * Controller Tests : `CustomerRewardControllerTest`, `TransactionControllerTest`
