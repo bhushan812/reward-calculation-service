@@ -29,10 +29,10 @@ public class TransactionController {
 	}
 
 	@PutMapping(ApiUrls.UPDATE_TRANSACTION)
-	public ResponseEntity<?> updateTransaction(@PathVariable Long id,
+	public ResponseEntity<?> updateTransaction(@PathVariable Long transactionId,
 			@RequestBody TransactionRequestDto transactionRequestDto) {
 
-		transactionService.updateTransaction(id, transactionRequestDto);
+		transactionService.updateTransaction(transactionId, transactionRequestDto);
 		return ResponseEntity.ok(Messages.TRANSACTION_UPDATE_SUCCESS);
 	}
 

@@ -4,7 +4,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.Collections;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -28,7 +29,6 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-
 public class CustomerRewardImpl implements CustomerRewardService {
 
 	@Autowired
@@ -41,14 +41,8 @@ public class CustomerRewardImpl implements CustomerRewardService {
 	public CustomerRewardResponseDto getRewardsByCustomer(Long customerId) {
 		log.info("Fetching rewards for customerId: {}", customerId);
 
-		CustomerRewardEntity customerRewardEntity = customerRewardRepository.findById(customerId).orElse(null);
-		log.debug("Customer entity fetched: {}", customerRewardEntity);
-
-		if (null == customerRewardEntity) {
-			log.warn("Customer not found for ID: {}", customerId);
-			return null;
-		}
-
+		CustomerRewardEntity customerRewardEntity = customerRewardRepository.findById(customerId)
+				.orElseThrow(() -> new ResourceNotFoundException(Messages.CUSTOMER_NOT_FOUND_OR_NO_REWARDS));
 		List<TransactionEntity> tx = transactionRepository.findByCustomerId(customerId);
 
 		log.info("Total transactions found: {}", tx.size());
@@ -61,14 +55,24 @@ public class CustomerRewardImpl implements CustomerRewardService {
 		log.info("Fetching reward responses for all customers");
 
 		List<CustomerRewardEntity> customerRewardEntities = customerRewardRepository.findAll();
-		log.info("Total customers found: {}", customerRewardEntities.size());
+
+		if (customerRewardEntities.isEmpty()) {
+			return Collections.emptyList();
+		}
+
+		List<Long> customerIds = customerRewardEntities.stream().map(CustomerRewardEntity::getId)
+				.collect(Collectors.toList());
+
+		List<TransactionEntity> allTx = transactionRepository.findByCustomerIdIn(customerIds);
+		log.info("Total transactions fetched: {}", allTx.size());
+
+		Map<Long, List<TransactionEntity>> txByCustomer = allTx.stream()
+				.collect(Collectors.groupingBy(TransactionEntity::getCustomerId));
 
 		List<CustomerRewardResponseDto> list = new ArrayList<>();
-
 		for (CustomerRewardEntity c : customerRewardEntities) {
-			List<TransactionEntity> tx = transactionRepository.findByCustomerId(c.getId());
-			log.debug("Processing customer {} with {} transactions", c.getId(), tx.size());
-			list.add(buildResponse(c, tx));
+			List<TransactionEntity> txList = txByCustomer.getOrDefault(c.getId(), Collections.emptyList());
+			list.add(buildResponse(c, txList));
 		}
 
 		log.info("Completed generating rewards for all customers");
@@ -99,60 +103,42 @@ public class CustomerRewardImpl implements CustomerRewardService {
 			log.debug("Transaction {} processed with points {}", t.getId(), points);
 		}
 
-		log.info("Total points for customer {} = {}", c.getId(), total);
-
 		return new CustomerRewardResponseDto(c.getId(), c.getName(), monthly, total, dtoList);
 	}
 
 	@Override
 	public void addCustomer(CustomerRewardRequestDto customerRewardDto) {
-
 		log.info(Messages.CUSTOMER_ADD_SUCCESS + " - {}", customerRewardDto.getName());
 
 		CustomerRewardEntity customerRewardEntity = new CustomerRewardEntity();
 		customerRewardEntity.setName(customerRewardDto.getName());
 		customerRewardRepository.save(customerRewardEntity);
 
-		log.info(Messages.CUSTOMER_ADD_SUCCESS + " - {}", customerRewardDto.getName());
 	}
 
 	@Override
+	@Transactional
 	public void updateCustomer(Long id, CustomerRewardRequestDto customerRewardDto) {
-		log.info("Updating customer with ID: {}", id);
+		CustomerRewardEntity customerRewardEntity = customerRewardRepository.findById(id)
+				.orElseThrow(() -> new ResourceNotFoundException(Messages.CUSTOMER_NOT_FOUND_OR_NO_REWARDS));
 
-		CustomerRewardEntity customerRewardEntity = customerRewardRepository.findById(id).orElseThrow(() -> {
-			log.error("Customer with ID {} not found for update", id);
-
-			return new ResourceNotFoundException(Messages.CUSTOMER_NOT_FOUND_OR_NO_REWARDS);
-		});
-
-		customerRewardEntity.setName(customerRewardEntity.getName());
-
+		customerRewardEntity.setName(customerRewardDto.getName());
 		customerRewardRepository.save(customerRewardEntity);
-
-		log.info(Messages.CUSTOMER_UPDATE_SUCCESS + " - {}", id);
 	}
 
 	@Override
+	@Transactional
 	public void deleteCustomer(Long customerId) {
-	    log.warn("Deleting customer with ID: {}", customerId);
+		log.warn("Deleting customer with ID: {}", customerId);
 
-	    List<TransactionEntity> transactions = transactionRepository.findByCustomerId(customerId);
-	    log.info("Total transactions to delete for customer {}: {}", customerId, transactions.size());
+		transactionRepository.deleteByCustomerId(customerId);
 
-	    transactions.forEach(tx -> {
-	        transactionRepository.deleteById(tx.getId());
-	        log.debug("Deleted transaction {}", tx.getId());
-	    });
+		int customerDeleted = customerRewardRepository.deleteByIdReturnCount(customerId);
 
-	    Optional<CustomerRewardEntity> existingCustomer = customerRewardRepository.findById(customerId);
-	    existingCustomer.ifPresent(customer -> {
-	        customerRewardRepository.deleteById(customer.getId());
-	        log.info(Messages.CUSTOMER_DELETE_SUCCESS + " - {}", customerId);
-	    });
+		if (customerDeleted == 0) {
+			throw new ResourceNotFoundException(Messages.CUSTOMER_NOT_FOUND_OR_NO_REWARDS);
+		}
 
-	    log.info("All related transactions and customer deleted for ID {}", customerId);
+		log.info("Customer and transactions successfully deleted for ID: {}", customerId);
 	}
-
-
 }

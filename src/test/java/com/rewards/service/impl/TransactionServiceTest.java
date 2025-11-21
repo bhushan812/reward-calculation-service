@@ -72,7 +72,6 @@ public class TransactionServiceTest {
 		Long customerId = 1L;
 
 		TransactionRequestDto dto = new TransactionRequestDto();
-		dto.setTransactionId(transactionId);
 		dto.setCustomerId(customerId);
 		dto.setAmount(150.0);
 		dto.setDate(LocalDate.parse("2024-11-12"));
@@ -81,6 +80,7 @@ public class TransactionServiceTest {
 		existingTransaction.setId(transactionId);
 		existingTransaction.setAmount(100.0);
 		existingTransaction.setDate(LocalDate.parse("2024-11-10"));
+		existingTransaction.setCustomerId(customerId);
 		when(transactionRepository.findById(transactionId)).thenReturn(Optional.of(existingTransaction));
 
 		CustomerRewardEntity existingCustomer = new CustomerRewardEntity();
@@ -88,7 +88,7 @@ public class TransactionServiceTest {
 		existingCustomer.setName("John Doe");
 		when(customerRewardRepository.findById(customerId)).thenReturn(Optional.of(existingCustomer));
 
-		transactionService.updateTransaction(customerId, dto);
+		transactionService.updateTransaction(transactionId, dto);
 
 		verify(transactionRepository, times(1)).save(any(TransactionEntity.class));
 	}
@@ -97,7 +97,6 @@ public class TransactionServiceTest {
 	public void testUpdateTransactionNotFound() {
 		Long transactionId = 999L;
 		TransactionRequestDto transactionRequestDto = new TransactionRequestDto();
-		transactionRequestDto.setTransactionId(transactionId);
 		transactionRequestDto.setCustomerId(1L);
 		transactionRequestDto.setAmount(150.0);
 		transactionRequestDto.setDate(LocalDate.parse("2024-11-12"));
@@ -137,16 +136,15 @@ public class TransactionServiceTest {
 			verify(transactionRepository, times(1)).deleteById(transactionId);
 		}
 	}
-	  
 
-	    @Test
-	    public void testGetAllTransactionsEmpty() {
-	        when(transactionRepository.findAll()).thenReturn(Collections.emptyList());
+	@Test
+	public void testGetAllTransactionsEmpty() {
+		when(transactionRepository.findAll()).thenReturn(Collections.emptyList());
 
-	        List<TransactionEntity> result = transactionService.getAllTransactions();
+		List<TransactionEntity> result = transactionService.getAllTransactions();
 
-	        org.junit.jupiter.api.Assertions.assertNotNull(result);
-	        org.junit.jupiter.api.Assertions.assertTrue(result.isEmpty());
-	        verify(transactionRepository, times(1)).findAll();
-	    }
+		org.junit.jupiter.api.Assertions.assertNotNull(result);
+		org.junit.jupiter.api.Assertions.assertTrue(result.isEmpty());
+		verify(transactionRepository, times(1)).findAll();
+	}
 }

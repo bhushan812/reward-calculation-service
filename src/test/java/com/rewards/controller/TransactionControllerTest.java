@@ -66,18 +66,19 @@ public class TransactionControllerTest {
     @Test
     public void testUpdateTransaction() throws Exception {
         TransactionRequestDto transactionRequestDto = new TransactionRequestDto();
-        transactionRequestDto.setTransactionId(1L);
-        transactionRequestDto.setCustomerId(1L);
+        transactionRequestDto.setCustomerId(3L);
         transactionRequestDto.setAmount(150.0);
         transactionRequestDto.setDate(LocalDate.parse("2024-11-12"));
 
-        mockMvc.perform(put(ApiUrls.TRANSACTION_BASE + ApiUrls.UPDATE_TRANSACTION.replace("{id}", "1"))
+        doNothing().when(transactionService).updateTransaction(203L, transactionRequestDto);
+
+        mockMvc.perform(put(ApiUrls.TRANSACTION_BASE + ApiUrls.UPDATE_TRANSACTION.replace("{id}", "203"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(transactionRequestDto)))
-                .andExpect(status().isOk())
+                .andExpect(status().isOk()) 
                 .andExpect(content().string(Messages.TRANSACTION_UPDATE_SUCCESS));
 
-        verify(transactionService, times(1)).updateTransaction(1L, transactionRequestDto);
+        verify(transactionService, times(1)).updateTransaction(203L, transactionRequestDto);
     }
 
     @Test
@@ -122,7 +123,6 @@ public class TransactionControllerTest {
     @Test
     public void testUpdateTransactionNative() {
         TransactionRequestDto dto = new TransactionRequestDto();
-        dto.setTransactionId(1L);
         dto.setCustomerId(1L);
         dto.setAmount(150.0);
         dto.setDate(LocalDate.parse("2024-11-12"));
@@ -175,4 +175,5 @@ public class TransactionControllerTest {
 
         verify(transactionService, times(1)).getAllTransactions();
     }
+
 }

@@ -13,10 +13,8 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "customers")
-
 public class CustomerRewardEntity {
 	@Id
-
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 

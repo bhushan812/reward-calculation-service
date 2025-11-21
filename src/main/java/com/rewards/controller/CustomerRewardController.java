@@ -45,7 +45,7 @@ public class CustomerRewardController {
 		try {
 			customerService.deleteCustomer(customerId);
 			return ResponseEntity.ok(Messages.CUSTOMER_DELETE_SUCCESS);
-		
+
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Messages.ERROR_DELETE + e.getMessage());
 		}
@@ -72,14 +72,9 @@ public class CustomerRewardController {
 		try {
 			CustomerRewardResponseDto response = customerService.getRewardsByCustomer(id);
 
-			if (response == null) {
-				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Messages.CUSTOMER_NOT_FOUND_OR_NO_REWARDS);
-			}
-
 			return ResponseEntity.ok(response);
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Messages.ERROR_FETCH_REWARDS + e.getMessage());
 		}
 	}
 }
-

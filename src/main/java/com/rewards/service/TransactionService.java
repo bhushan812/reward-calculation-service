@@ -9,7 +9,7 @@ public interface TransactionService {
 
 	void addTransaction(TransactionRequestDto transactionRequestDto);
 
-	void updateTransaction(Long id, TransactionRequestDto transactionRequestDto);
+	void updateTransaction(Long transactionId, TransactionRequestDto transactionRequestDto);
 
 	void deleteTransaction(Long transactionId);
 

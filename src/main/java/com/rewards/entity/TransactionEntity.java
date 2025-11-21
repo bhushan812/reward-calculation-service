@@ -17,9 +17,10 @@ public class TransactionEntity {
 
 	@Column(name = "customer_id")
 	private Long customerId;
-	@Column(name = "amount")
 
+	@Column(name = "amount")
 	private Double amount;
+
 	@Column(name = "date")
 	private LocalDate date;
 
